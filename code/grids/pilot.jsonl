@@ -1,0 +1,13 @@
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 2000, "seed": 0, "d": 128, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 2000, "seed": 0, "d": 256, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 8000, "seed": 0, "d": 128, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 8000, "seed": 0, "d": 256, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 32000, "seed": 0, "d": 128, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 32000, "seed": 0, "d": 256, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 128000, "seed": 0, "d": 128, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "complete", "q": 1.0, "N": 128000, "seed": 0, "d": 256, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "parity", "n": 30, "k": 8, "arm": "none", "q": 0.0, "N": 32000, "seed": 0}
+{"task": "parity", "n": 30, "k": 8, "arm": "none", "q": 0.0, "N": 32000, "seed": 1}
+{"task": "parity", "n": 30, "k": 8, "arm": "none", "q": 0.0, "N": 32000, "seed": 2}
+{"task": "mult", "da": 4, "db": 4, "arm": "none", "q": 0.0, "N": 128000, "seed": 0, "d": 128, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
+{"task": "mult", "da": 4, "db": 4, "arm": "none", "q": 0.0, "N": 128000, "seed": 0, "d": 256, "layers": 4, "heads": 4, "max_steps": 40000, "eval_every": 1000, "n_test": 500}
