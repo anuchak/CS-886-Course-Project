@@ -1,6 +1,6 @@
 """Run a list of configs as batched ensembles on one GPU.
 
-    python run_sweep.py --configs grid.jsonl --out results.jsonl --ensemble 64
+    python run_sweep.py --configs experiments/parity_n30.jsonl --out ../results/parity_n30.jsonl --ensemble 128
 
 Configs are grouped by shape (cotb.ensemble.shape_key) and each group is
 trained in chunks of up to --ensemble models in a single batched pass.

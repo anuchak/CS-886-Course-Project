@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run one grid on a full H100:  sbatch --job-name=NAME slurm/sweep.sh GRID.jsonl OUT.jsonl [ENSEMBLE]
+# Run one experiment file on a full H100:  sbatch --job-name=NAME slurm/sweep.sh EXPERIMENT.jsonl OUT.jsonl [ENSEMBLE]
 # ENSEMBLE = models trained at once (default 128; 39 was used for multiplication).
 # If the GPU on the assigned node is unusable, the job resubmits itself with that
 # node excluded (at most 10 nodes), so a bad GPU never runs the sweep on CPU.
