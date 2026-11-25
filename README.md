@@ -1,4 +1,4 @@
-# Complete vs. Partial Chain-of-Thought Traces under a Fixed Budget
+# Complete vs. Partial CoT Traces under a Fixed Budget
 
 Code and results for the CS 886 course project (Fall 2026).
 The report is [`report/main.pdf`](report/main.pdf).

@@ -74,7 +74,7 @@ def collapse_panel(ax, C, task, size, series, title):
     ax.set_axisbelow(True)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
-    ax.set_xlabel("neighbouring shown pairs per step")
+    ax.set_xlabel("problems showing steps j\u22121 and j (P)")
     ax.set_title(title, loc="left", color=INK)
 
 
@@ -115,18 +115,18 @@ def main():
     os.makedirs(outdir, exist_ok=True)
     C = cells(load(root))
 
-    fig, axes = plt.subplots(1, 3, figsize=(6.75, 2.05), gridspec_kw=dict(width_ratios=[1, 1, 0.82]))
+    fig, axes = plt.subplots(1, 3, figsize=(6.75, 1.8), gridspec_kw=dict(width_ratios=[1, 1, 0.82]))
     allq = {0.75, 0.5, 0.25, 0.125}
     collapse_panel(axes[0], C, "parity", 30, [
-        ("complete", {("complete", q) for q in allq}, BLUE, "o", "-", True),
-        ("random", {("random", q) for q in allq}, ORANGE, "s", "-", True),
-    ], "(a) Parity, n = 30, all q")
+        ("Complete", {("complete", q) for q in allq}, BLUE, "o", "-", True),
+        ("Random", {("random", q) for q in allq}, ORANGE, "s", "-", True),
+    ], "(a) Parity, n = 30")
     collapse_panel(axes[1], C, "mult", "4x4", [
-        ("complete", {("complete", q) for q in allq}, BLUE, "o", "-", True),
-        ("random, q \u2265 1/2", {("random", 0.75), ("random", 0.5)}, ORANGE, "s", "-", True),
-        ("random, q = 1/4", {("random", 0.25)}, ORANGE, "s", "--", False),
-    ], "(b) Multiplication, 4\u00d74 digits")
-    axes[0].set_ylabel("fraction of runs reaching 95%")
+        ("Complete", {("complete", q) for q in allq}, BLUE, "o", "-", True),
+        ("Random, q \u2265 1/2", {("random", 0.75), ("random", 0.5)}, ORANGE, "s", "-", True),
+        ("Random, q = 1/4", {("random", 0.25)}, ORANGE, "s", "--", False),
+    ], "(b) Multiplication")
+    axes[0].set_ylabel("share of runs that succeed")
     axes[0].legend(loc="lower right", frameon=False, handletextpad=0.3, borderaxespad=0.2)
     axes[1].legend(loc="lower right", frameon=False, handletextpad=0.3, borderaxespad=0.1,
                    handlelength=1.2, labelspacing=0.25, fontsize=5.8)
@@ -154,9 +154,9 @@ def main():
     ax.set_yscale("log", base=2)
     ax.set_yticks([1, 2, 4, 8, 16]); ax.set_yticklabels(["1", "2", "4", "8", "16"])
     ax.set_xticks([10, 15, 20, 30]); ax.set_xlim(7, 31)
-    ax.set_xlabel("input length n (parity, k = 8)")
-    ax.set_ylabel("budget ratio, random / complete")
-    ax.set_title("(c) Price of random traces vs n", loc="left", color=INK)
+    ax.set_xlabel("input length n")
+    ax.set_ylabel("budget, Random / Complete")
+    ax.set_title("(c) Parity, by input length", loc="left", color=INK)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     ax.legend(loc="upper left", frameon=False, handletextpad=0.3, borderaxespad=0.2)
@@ -165,25 +165,28 @@ def main():
     fig.savefig(os.path.join(outdir, "results.png"), dpi=220)
 
     # table: budget B50 at which half the runs reach 95%, with 90% bootstrap intervals
-    fmt = lambda v: "--" if v is None else (f"{v / 1000:.1f}k" if v >= 1000 else f"{v:.0f}")
+    fmt = lambda v: "--" if v is None else f"{v:,.0f}"
     qname = {0.75: "3/4", 0.5: "1/2", 0.25: "1/4", 0.125: "1/8"}
     lines = []
     for task, size, T, qs in (("parity", 30, 8, (0.75, 0.5, 0.25, 0.125)), ("mult", "4x4", 4, (0.75, 0.5, 0.25))):
+        title = "Parity, $n=30$" if task == "parity" else "Multiplication, 4 digits by 4 digits"
+        lines.append(f"\\multicolumn{{6}}{{@{{}}l}}{{\\emph{{{title}}}}} \\\\")
         for q in qs:
             cc, cr = C.get((task, size, "complete", q)), C.get((task, size, "random", q))
             bc = b50_with_ci(cc, "complete", q, T) if cc else (None,) * 3
             br = b50_with_ci(cr, "random", q, T) if cr else (None,) * 3
             r = ratio_ci(cc, cr, q, T) if cc and cr else (None,) * 3
             per = C.get((task, size, "periodic", q))
-            pstr = "--" if per is None else f"{sum(sum(v) for v in per.values())}/{sum(len(v) for v in per.values())}"
+            pstr = "--" if per is None else f"{sum(sum(v) for v in per.values())} of {sum(len(v) for v in per.values())}"
             rstr = "--" if r[0] is None else f"{r[0]:.1f} [{r[1]:.1f}, {r[2]:.1f}]"
-            label = "Parity" if task == "parity" else "Mult."
-            lines.append(f"{label} & {qname[q]} & {fmt(bc[0])} & {fmt(br[0])} & {rstr} & {1 / q:.1f} & {pstr} \\\\")
+            lines.append(f"{qname[q]} & {fmt(bc[0])} & {fmt(br[0])} & {rstr} & {1 / q:.1f} & {pstr} \\\\")
             print(lines[-1])
         lines.append("\\midrule")
     lines = lines[:-1]
-    head = ["\\begin{tabular}{@{}llrrlrr@{}}", "\\toprule",
-            "Task & $q$ & Compl. & Random & Ratio [90\\% CI] & $1/q$ & Periodic \\\\", "\\midrule"]
+    head = ["\\begin{tabular}{@{}lrrlrr@{}}", "\\toprule",
+            " & \\multicolumn{2}{c}{Budget needed} & \\multicolumn{2}{c}{Random / Complete} & Periodic \\\\",
+            "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
+            "$q$ & Complete & Random & measured & predicted & succeeded \\\\", "\\midrule"]
     with open(os.path.join(outdir, "table_b50.tex"), "w") as f:
         f.write("\n".join(head + lines + ["\\bottomrule", "\\end{tabular}"]) + "\n")
     print("\n(c) ratios:", [(q, n, round(r, 2), lo and round(lo, 2), hi and round(hi, 2)) for q, n, r, lo, hi in rows_c])
