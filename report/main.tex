@@ -51,21 +51,21 @@
 %-----------------------------------------------------------------------
 \begin{abstract}
 Training on intermediate steps (chain of thought, CoT) lets transformers learn
-tasks that are hard to learn from the final answer alone, but labelling every
-step of every training problem is expensive. We ask how a fixed budget of
-labelled steps should be allocated: complete traces for a few problems, or
-partial traces for many. We train small transformers from scratch on sparse
+tasks that are hard to learn from the final answer alone. However, labelling
+every step of every training problem is expensive. We study how best to
+allocate a fixed budget of labelled steps: complete traces for a few problems,
+or partial traces for many. We train small transformers from scratch on sparse
 parity and on multiplication of two 4-digit numbers, and spend the same budget
-on complete traces, random partial traces that label a fraction $q$ of all
-steps, or periodic partial traces that label every $(1/q)$-th step. At test
-time the model receives only the input and must write the entire trace. We
-test the locality-based prediction that a step is learned only from problems
-that also show the step before it. Random traces provide a fraction $q$ as
-many such pairs and need about $1/q$ times the budget of complete traces, for
-every $q$ on parity and for $q\ge\tfrac12$ on multiplication, where
-optimization failures raise the cost at $q=\tfrac14$. Periodic traces provide
-no such pairs and almost never succeed, even though the models fit the steps
-they are shown.
+in three ways: complete traces, random partial traces that label a fraction
+$q$ of all steps, and periodic partial traces that label every $(1/q)$-th
+step. At test time, the model receives only the input and must write the
+entire trace. We test the locality-based prediction that a step is learned
+only from problems that also show the step before it. Random traces contain a
+fraction $q$ as many such neighbouring pairs and need about $1/q$ times the
+budget of complete traces, for every $q$ on parity and for $q\ge\tfrac12$ on
+multiplication (at $q=\tfrac14$, optimization failures raise the cost).
+Periodic traces contain no neighbouring pairs and almost never succeed, even
+though the models fit the steps they are shown.
 \end{abstract}
 
 %-----------------------------------------------------------------------
@@ -77,8 +77,8 @@ $\Bud$ labelled steps, one can label complete traces for a few problems or
 partial traces for many. In large language models, truncated or
 endpoint-only traces keep most of the benefit of full traces
 \citep{hwang2026revisiting,chen2025distilling}, which these studies attribute
-to redundancy in long natural-language traces. Whether partial traces still
-work when every step matters is open.
+to redundancy in long natural-language traces. It remains open whether
+partial traces also work when every step is needed.
 
 The locality view of CoT \citep{wen2025sparse,abbe2024globality} holds that a
 step is easy to learn when it depends on only a few visible tokens. For
@@ -90,7 +90,7 @@ two tasks, scored by whether the model writes the whole trace,
 (ii) $P$, the number of training problems that show a step together with the
 step before it, which predicts that random traces need about $1/q$ times the
 budget of complete traces, and
-(iii) evidence that steps after a gap do not help even when they are cheap,
+(iii) evidence that steps after a gap do not help, even when easy to learn,
 and that periodic traces fail even when the models fit the steps they are
 shown.
 
@@ -169,17 +169,16 @@ We train decoder-only pre-norm transformers with learned positional
 embeddings from scratch, with next-token loss on the shown steps and the
 answer. Parity uses width 64, 2 layers and 2 heads (0.1M parameters),
 and multiplication uses width 128, 4 layers and 4 heads (0.8M parameters).
-We use AdamW with learning rate $10^{-3}$ (linear warm-up over the first
-1{,}000 updates, constant afterwards), weight decay 0.1 and
+We use AdamW with learning rate $10^{-3}$ (linear warm-up over 1{,}000
+updates, then constant), weight decay 0.1 and
 $\beta=(0.9,0.98)$, batch size 256, gradient clipping at norm 1, and at most
 40{,}000 updates.
 
 \paragraph{Test accuracy.}
 At test time the model is given only the input and must write every step and
 the answer itself, on 1{,}000 (parity) or 500 (multiplication) fresh
-problems. A problem counts as correct only if every token is right, and the
-fraction of correct problems is the model's exact accuracy. It is measured
-every 500 (parity) or 1{,}000 (multiplication) updates.
+problems. Its exact accuracy is the fraction of problems with every token
+right, measured every 500 (parity) or 1{,}000 (multiplication) updates.
 
 \paragraph{Budget needed.}
 A \emph{run} is one trained model, for one allocation, $q$, training-set size
@@ -212,11 +211,12 @@ If the $g$ steps before it are hidden, it depends on $g{+}1$ new input tokens:
 s_j &= s_{j-g-1}\oplus x_{i_{j-g}}\oplus\cdots\oplus x_{i_j},\\
 S_j &= S_{j-g-1}+a\textstyle\sum_{i=j-g}^{j} b_i\,10^{i-1}.
 \end{align*}
-In parity the $g{+}1$ bits sit at unknown positions, which costs about
-$n^{g+1}$ to learn \citep{barak2022hidden,abbe2024globality}. In
-multiplication the digits sit at known positions, so a gap costs less.
+In parity these bits are at unknown positions, and such a step takes about
+$n^{g+1}$ computation to learn \citep{barak2022hidden,abbe2024globality}. In
+multiplication the digits of $b$ are at known positions, which makes such a
+step easier to learn.
 
-Assume that at our budgets a step after a gap teaches nothing. Then step $j$
+Assume that at our budgets steps shown after a gap do not help. Then step $j$
 is learned only from problems that show steps $j{-}1$ and $j$ together. The
 number of such problems is $P=q\Nprob$ for Complete, $P\approx q^2\Nprob$ for
 Random, which shows each step with probability $q$, and $P=0$ for Periodic.
@@ -226,8 +226,9 @@ Complete. This gives three predictions:
 plotted against $P$, and Random needs $1/q$ times the budget.
 \textbf{(P2)} Periodic fails at every budget.
 \textbf{(P3)} If steps after a gap do help, Random needs less than $1/q$
-times the budget and Periodic starts to succeed. This would show first where
-gaps are cheap: parity at small $n$, and multiplication.
+times the budget and Periodic starts to succeed. This would appear first where
+a step after a gap is easiest to learn: in parity with small $n$, and in
+multiplication.
 
 %-----------------------------------------------------------------------
 \section{Results}
@@ -277,7 +278,7 @@ at $q=\tfrac14$ for $n=10$, and 3.5 and 4.2 for $n=30$
 $q=\tfrac12$ and 3.8 at $q=\tfrac14$. Periodic failed in all 90 runs at
 $n\le20$. Its runs with $\Nprob\ge8{,}000$ reach a median final training loss
 below 0.001 and still fail at test time. This shows that steps after a gap
-do not help at our budgets, even when they are cheaper to learn and the
+do not help at our budgets, even when they are easier to learn and the
 model fits them.
 
 \paragraph{Multiplication (P1--P3).}
@@ -291,7 +292,7 @@ accuracy (8 of 9 at $\Nprob=8{,}000$, 1 of 9 at $\Nprob=64{,}000$). Periodic
 failed in all 78 runs, with at most 1\% correct answers. This shows that for
 $q\ge\tfrac12$, $P$ predicts the cost of Random in multiplication as
 well, and that steps after a gap do not help, even though they
-are cheaper than in parity. At $q=\tfrac14$, stalled runs make Random cost
+are easier to learn than in parity. At $q=\tfrac14$, stalled runs make Random cost
 more than $P$ predicts.
 
 %-----------------------------------------------------------------------
